@@ -1,6 +1,10 @@
 name: 'TypeScript Error Reporter'
 description: 'Report type check result on PR diff view.'
 author: 'andoshin11'
+inputs:
+  workingDirectory:
+    description: 'Path to run from. If not set, top level directory will be used.'
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'
