@@ -5,6 +5,7 @@ import { createHost, createService } from './langSvc'
 import { Reporter } from './reporter'
 import { FileEntry } from './types'
 import { getAllLibs, uniq } from './utils'
+import stripJsonComments from 'strip-json-comments'
 
 export class Doctor {
   private service: _ts.LanguageService
@@ -19,30 +20,35 @@ export class Doctor {
   }
 
   static fromConfigFile(configPath: string, ts: typeof _ts): Doctor {
-    const content = fs.readFileSync(configPath).toString();
-    const parsed = ts.parseJsonConfigFileContent(
+    const content = stripJsonComments(fs.readFileSync(configPath).toString(), {whitespace: false});
+    try {
+      const parsed = ts.parseJsonConfigFileContent(
         JSON.parse(content),
         ts.sys,
         path.dirname(configPath)
-    );
-    const compilerOptions = parsed.options
+      );
+      const compilerOptions = parsed.options
 
-    const defaultLibFileName = _ts.getDefaultLibFileName(compilerOptions)
-    const libs =  [defaultLibFileName, ...(compilerOptions.lib || [])]
-    const allLibs = getAllLibs(uniq(libs))
+      const defaultLibFileName = _ts.getDefaultLibFileName(compilerOptions)
+      const libs =  [defaultLibFileName, ...(compilerOptions.lib || [])]
+      const allLibs = getAllLibs(uniq(libs))
 
-    /**
-     * Note:
-     * 
-     * since we use CDN-hosted TS runtime, which is a bundled version,
-     * we need to manually added lib.*.d.ts. 
-     */
-    const fileNames = [
-      ...parsed.fileNames,
-      ...allLibs
-    ]
+      /**
+       * Note:
+       * 
+       * since we use CDN-hosted TS runtime, which is a bundled version,
+       * we need to manually added lib.*.d.ts. 
+       */
+      const fileNames = [
+        ...parsed.fileNames,
+        ...allLibs
+      ]
 
-    return new Doctor(fileNames, compilerOptions, ts)
+      return new Doctor(fileNames, compilerOptions, ts)
+    } catch (error) {
+      console.error(error)
+      throw error
+    }
   }
 
   getSemanticDiagnostics() {
