@@ -31,7 +31,7 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
-    "@actions/core": "^1.2.3",
+    "@actions/core": "^1.2.6",
     "@yarnpkg/lockfile": "^1.1.0",
     "concat-stream": "^2.0.0",
     "glob": "^7.1.6"
